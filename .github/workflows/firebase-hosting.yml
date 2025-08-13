@@ -19,17 +19,19 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+
+      # Authenticate to Google Cloud using your service-account JSON secret
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Install Firebase CLI
         run: npm i -g firebase-tools
 
-      - name: Write service account to file
-        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > ${{ github.workspace }}/sa.json
-
-      - name: Deploy Hosting
+      - name: Deploy to Firebase Hosting
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/sa.json
           PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           HOSTING_SITE: ${{ secrets.FIREBASE_HOSTING_SITE }}
         run: |

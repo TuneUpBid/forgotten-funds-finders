@@ -1,0 +1,40 @@
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools
+
+      - name: Write service account to file
+        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > ${{ github.workspace }}/sa.json
+
+      - name: Deploy Hosting
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/sa.json
+          PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          HOSTING_SITE: ${{ secrets.FIREBASE_HOSTING_SITE }}
+        run: |
+          if [ -n "$HOSTING_SITE" ]; then
+            firebase deploy --project "$PROJECT_ID" --only "hosting:$HOSTING_SITE"
+          else
+            firebase deploy --project "$PROJECT_ID" --only hosting
+          fi
